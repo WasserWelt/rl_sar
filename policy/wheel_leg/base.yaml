@@ -1,0 +1,27 @@
+# Copyright (c) 2024-2025 Ziqi Fan
+# SPDX-License-Identifier: Apache-2.0
+
+wheel_leg:
+  dt: 0.005
+  decimation: 4
+  fixed_kp: [25.0, 25.0,
+             25.0, 25.0,
+             0.0, 0.0]
+  fixed_kd: [1.0, 1.0,
+             1.0, 1.0,
+             2.0, 2.0]
+  num_of_dofs: 6
+  wheel_indices: [4, 5]
+  torque_limits: [30.0, 30.0,
+                  30.0, 30.0,
+                  3.0, 3.0]
+  default_dof_pos: [ 0.0, 0.0,
+                     0.0, 0.0,
+                     0.0, 0.0]
+  joint_names: ["back_left_hip_Joint", "back_right_hip_Joint",
+                "back_left_knee_Joint", "back_right_knee_Joint",
+                "left_wheel_Joint", "right_wheel_Joint"]
+  joint_controller_names: ["back_left_hip_controller", "back_right_hip_controller",
+                           "back_left_knee_controller", "back_right_knee_controller",
+                           "left_wheel_controller", "right_wheel_controller"]
+  joint_mapping: [0, 1, 2, 3, 4, 5]
