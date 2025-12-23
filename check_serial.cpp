@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
     }
 
     int valid_packets = 0;
-    
+    auto last_print_time = std::chrono::steady_clock::now();
     while (g_signal_status == 0) {
         // Send a command periodically
         static int send_ctr = 0;
@@ -98,35 +98,70 @@ int main(int argc, char** argv) {
         if (ret > 0) {
             int received = sdk.Recv();
             if (received > 0) {
-                // 现在 AnalyzeData 已经正确工作
                 sdk.AnalyzeData(sdk.recv_buff, state);
                 valid_packets++;
                 
-                // 直接从 state 和 getter 中读取正确的数据
-                float mcu_time = sdk.GetMCUTime();
-                float motor0_q = state.motorState[0].q;
-                xRockerBtnDataStruct* rc = (xRockerBtnDataStruct*)state.wirelessRemote;
-                float joy_lx = rc->lx;
+                // 获取当前时间，检查是否需要刷新显示 (例如每 50ms 刷新一次)
+                auto now = std::chrono::steady_clock::now();
+                if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_print_time).count() > 5) {
+                    last_print_time = now;
 
-                // 打印信息
-                std::cout << "--------------------------------" << std::endl;
+                    float mcu_time = sdk.GetMCUTime();
+                    xRockerBtnDataStruct* rc = (xRockerBtnDataStruct*)state.wirelessRemote;
 
-                // Debug: Print Raw Hex
-                std::cout << "\n[Packet " << valid_packets << "] Raw Hex (" << received << " bytes):" << std::endl;
-                for (int i = 0; i < received; i++) {
-                    std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)sdk.recv_buff[i] << " ";
-                    if ((i + 1) % 16 == 0) std::cout << std::endl;
+                    // ================= 屏幕刷新与格式化的核心部分 =================
+                    
+                    // \033[2J 清屏, \033[1;1H 光标移动到左上角
+                    std::cout << "\033[2J\033[1;1H"; 
+
+                    std::cout << "================ ROBOT STATE MONITOR ================" << std::endl;
+                    std::cout << "Port: " << port << " | Valid Packets: " << valid_packets << std::endl;
+                    std::cout << "MCU Time: " << std::fixed << std::setprecision(4) << mcu_time << " s" << std::endl;
+                    std::cout << "-----------------------------------------------------" << std::endl;
+
+                    // 设置统一的数字格式：固定宽度(7)，保留3位小数，显示正负号
+                    std::cout << std::fixed << std::setprecision(3) << std::showpos;
+
+                    // 1. 电机数据 (表格化)
+                    std::cout << "[Motors]     M0(FL)    M1(FR)    M2(RL)    M3(RR)" << std::endl;
+                    std::cout << "  Pos (rad): ";
+                    for(int i=0; i<4; i++) std::cout << std::setw(9) << state.motorState[i].q << " ";
+                    std::cout << std::endl;
+
+                    std::cout << "  Vel (r/s): ";
+                    for(int i=0; i<4; i++) std::cout << std::setw(9) << state.motorState[i].dq << " ";
+                    std::cout << std::endl;
+
+                    std::cout << "-----------------------------------------------------" << std::endl;
+
+                    // 2. IMU 数据
+                    std::cout << "[IMU]" << std::endl;
+                    std::cout << "  Quat (wxyz): " 
+                              << std::setw(8) << state.imu.quaternion[0] 
+                              << std::setw(8) << state.imu.quaternion[1] 
+                              << std::setw(8) << state.imu.quaternion[2] 
+                              << std::setw(8) << state.imu.quaternion[3] << std::endl;
+                    
+                    std::cout << "  Gyro (r/s) : " 
+                              << std::setw(8) << state.imu.gyroscope[0] 
+                              << std::setw(8) << state.imu.gyroscope[1] 
+                              << std::setw(8) << state.imu.gyroscope[2] << std::endl;
+
+                    std::cout << "  Accel(m/s2): " 
+                              << std::setw(8) << state.imu.accelerometer[0] 
+                              << std::setw(8) << state.imu.accelerometer[1] 
+                              << std::setw(8) << state.imu.accelerometer[2] << std::endl;
+
+                    std::cout << "-----------------------------------------------------" << std::endl;
+
+                    // 3. 遥控器数据
+                    std::cout << "[Remote]" << std::endl;
+                    std::cout << "  Joy LX: " << std::setw(8) << rc->lx << std::endl;
+                    
+                    // 恢复默认显示设置 (取消 showpos)
+                    std::cout << std::noshowpos << std::endl;
+                    std::cout << "Press Ctrl+C to exit." << std::endl;
                 }
-                std::cout << std::dec << std::endl;
-                std::cout << "[Packet " << valid_packets << "] Size: " << received << std::endl;
-                
-                std::cout << std::fixed << std::setprecision(4);
-                std::cout << "  Time (MCU) : " << mcu_time << " s" << std::endl;
-                std::cout << state.motorState[0].q << " " << state.motorState[1].q << " " << state.motorState[2].q << " " << state.motorState[3].q << " " << std::endl;
-                std::cout << state.motorState[0].dq << " " << state.motorState[1].dq << " " << state.motorState[2].dq << " " << state.motorState[3].dq << " " << std::endl;
-                std::cout << state.imu.quaternion[0] << " " << state.imu.quaternion[1] << " " << state.imu.quaternion[2] << " " << state.imu.quaternion[3] << " " << std::endl;
-                std::cout << "  Remote LX  : " << joy_lx << std::endl;
-                std::cout << "--------------------------------" << std::endl;
             }
         }
         std::this_thread::sleep_for(std::chrono::microseconds(100));
