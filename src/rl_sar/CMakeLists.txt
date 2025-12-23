@@ -299,6 +299,13 @@ target_include_directories(l4w4_sdk INTERFACE
 )
 target_link_libraries(l4w4_sdk INTERFACE Threads::Threads)
 
+# wheel_leg_sdk
+add_library(wheel_leg_sdk INTERFACE)
+target_include_directories(wheel_leg_sdk INTERFACE
+    library/thirdparty/robot_sdk/wheel_leg/wheel_leg
+)
+target_link_libraries(wheel_leg_sdk INTERFACE Threads::Threads)
+
 # Lite3_MotionSDK
 if(SYSTEM_TYPE STREQUAL "Linux")
 add_library(lite3_motionsdk SHARED IMPORTED)
@@ -522,6 +529,28 @@ if(SYSTEM_TYPE STREQUAL "Linux")
                 geometry_msgs
             )
             install(TARGETS rl_real_g1 DESTINATION lib/${PROJECT_NAME})
+        endif()
+    endif()
+endif()
+
+# executable for rl real wheel_leg
+if(SYSTEM_TYPE STREQUAL "Linux")
+    add_executable(rl_real_wheel_leg src/rl_real_wheel_leg.cpp)
+    target_link_libraries(rl_real_wheel_leg
+        wheel_leg_sdk
+        rl_sdk
+        observation_buffer
+        ${YAML_CPP_LIBRARIES}
+    )
+    if(NOT USE_CMAKE)
+        if($ENV{ROS_DISTRO} MATCHES "noetic")
+            target_link_libraries(rl_real_wheel_leg ${catkin_LIBRARIES})
+        elseif($ENV{ROS_DISTRO} MATCHES "foxy|humble")
+            ament_target_dependencies(rl_real_wheel_leg
+                rclcpp
+                geometry_msgs
+            )
+            install(TARGETS rl_real_wheel_leg DESTINATION lib/${PROJECT_NAME})
         endif()
     endif()
 endif()
