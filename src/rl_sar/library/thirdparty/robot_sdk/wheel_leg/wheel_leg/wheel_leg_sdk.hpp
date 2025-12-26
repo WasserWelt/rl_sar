@@ -410,118 +410,6 @@ Vector3 WheelLegSDK::Quaternion_Transform(float vx, float vy, float vz, float qx
     return vout;
 }
 
-// void WheelLegSDK::AnalyzeData(unsigned char *recv_buff, LowState &lowState)
-// {
-//     // int idx = 2;
-//     int idx = 2;
-//     tmp_time_from_mcu = read_float(recv_buff, &idx);
-//     float BatteryVoltage = read_from1byte(recv_buff, &idx, 20, 60);
-//     float MCUTemperature = read_byte(recv_buff, &idx);
-
-//     float acc_lx = read_float(recv_buff, &idx);
-//     float acc_ly = read_float(recv_buff, &idx);
-//     float acc_lz = read_float(recv_buff, &idx);
-//     float omega_lx = read_float(recv_buff, &idx);
-//     float omega_ly = read_float(recv_buff, &idx);
-//     float omega_lz = read_float(recv_buff, &idx);
-//     float orientation_x = read_float(recv_buff, &idx);
-//     float orientation_y = read_float(recv_buff, &idx);
-//     float orientation_z = read_float(recv_buff, &idx);
-//     float orientation_w = read_float(recv_buff, &idx);
-
-//     Vector3 robot_up_w = Quaternion_Transform(0, 1, 0, orientation_x, orientation_y, orientation_z, orientation_w);
-//     Vector3 current_trunk_front = Quaternion_Transform(1, 0, 0, orientation_x, orientation_y, orientation_z, orientation_w);
-//     Vector3 current_trunk_right = Quaternion_Transform(0, 0, 1, orientation_x, orientation_y, orientation_z, orientation_w);
-//     Vector3 trunk_hori_front = current_trunk_front;
-//     trunk_hori_front.y = 0;
-//     Vector3_Normalize(&trunk_hori_front);
-//     Vector3 trunk_hori_right = Vector3_Cross(trunk_hori_front, {0, 1, 0});
-//     float r2d = 180.0f / M_PI;
-
-//     float robot_yaw_deg = Angle_vA_2_vB({1, 0, 0}, trunk_hori_front, {0, 1, 0}) * r2d;
-//     float robot_pitch_deg = Angle_vA_2_vB(trunk_hori_front, current_trunk_front, trunk_hori_right) * r2d;
-//     float robot_roll_deg = Angle_vA_2_vB(trunk_hori_right, current_trunk_right, current_trunk_front) * r2d;
-
-//     read_byte(recv_buff, &idx); // Key1
-//     read_byte(recv_buff, &idx); // Key2
-
-//     xRockerBtnDataStruct *rockerBtn = (xRockerBtnDataStruct *)(&(lowState.wirelessRemote));
-
-//     // [MODIFIED] Re-parsing keys from the buffer we just read
-//     unsigned char key1 = recv_buff[idx-2];
-//     unsigned char key2 = recv_buff[idx-1];
-
-//     rockerBtn->btn.components.R1 = (key1 & 0x80) >> 7;
-//     rockerBtn->btn.components.L1 = (key1 & 0x40) >> 6;
-//     rockerBtn->btn.components.start = (key1 & 0x20) >> 5;
-//     rockerBtn->btn.components.select = (key1 & 0x10) >> 4;
-//     rockerBtn->btn.components.R2 = (key1 & 0x08) >> 3;
-//     rockerBtn->btn.components.L2 = (key1 & 0x04) >> 2;
-//     rockerBtn->btn.components.F1 = (key1 & 0x02) >> 1;
-//     rockerBtn->btn.components.F2 = (key1 & 0x01) >> 0;
-
-//     rockerBtn->btn.components.A = (key2 & 0x80) >> 7;
-//     rockerBtn->btn.components.B = (key2 & 0x40) >> 6;
-//     rockerBtn->btn.components.X = (key2 & 0x20) >> 5;
-//     rockerBtn->btn.components.Y = (key2 & 0x10) >> 4;
-//     rockerBtn->btn.components.up = (key2 & 0x08) >> 3;
-//     rockerBtn->btn.components.right = (key2 & 0x04) >> 2;
-//     rockerBtn->btn.components.down = (key2 & 0x02) >> 1;
-//     rockerBtn->btn.components.left = (key2 & 0x01) >> 0;
-
-//     // [MODIFIED] Read Joystick as Floats (match L4W4SDK)
-//     // 5 floats: lx, rx, ly, L2, ry
-//     rockerBtn->lx = read_float(recv_buff, &idx);
-//     rockerBtn->rx = read_float(recv_buff, &idx);
-//     rockerBtn->ly = read_float(recv_buff, &idx);
-//     rockerBtn->L2 = read_float(recv_buff, &idx); // Note: L4W4 uses float for L2 trigger
-//     rockerBtn->ry = read_float(recv_buff, &idx);
-
-//     if (rockerBtn->btn.components.F1)
-//         show_rc = 1;
-//     else
-//         show_rc = 0;
-
-//     for (int i = 0; i < 6; i++)
-//     {
-//         lowState.motorState[i].q = lowState.motorState[i].q_raw = read_from2bytes(recv_buff, &idx, -M_PI, M_PI);
-//         lowState.motorState[i].dq = lowState.motorState[i].dq_raw = read_from2bytes(recv_buff, &idx, -33, 33);
-//         lowState.motorState[i].ddq = lowState.motorState[i].ddq_raw = 0;
-//     }
-    
-//     lowState.imu.quaternion[0] = orientation_w;
-//     lowState.imu.quaternion[1] = orientation_x;
-//     lowState.imu.quaternion[2] = -orientation_z;
-//     lowState.imu.quaternion[3] = orientation_y;
-
-//     lowState.imu.gyroscope[0] = omega_lx;
-//     lowState.imu.gyroscope[1] = -omega_lz;
-//     lowState.imu.gyroscope[2] = omega_ly;
-//     lowState.imu.accelerometer[0] = acc_lx;
-//     lowState.imu.accelerometer[1] = -acc_lz;
-//     lowState.imu.accelerometer[2] = acc_ly;
-
-
-//     // ctr++;
-//     // if (ctr >= 100)
-//     // {
-//     //     // float r2d = 180.0/M_PI;
-//     //     // std::cout<<"mcu time = "<<tmp_time_from_mcu<<",\tbattery = "<< BatteryVoltage<<std::endl;
-//     //     // std::cout<<"lx = "<<rockerBtn->lx<<",\try = "<<rockerBtn->ry<<",\trx = "<<rockerBtn->rx<<std::endl;
-//     //     // if(show_rc)
-//     //     if (0)
-//     //     {
-//     //         std::cout << "   rc: " << ((int)(rockerBtn->ly * 100) / 100.0) << "\t" << ((int)(rockerBtn->lx * 100) / 100.0);
-//     //         std::cout << "\t" << ((int)(rockerBtn->ry * 100) / 100.0) << "\t" << ((int)(rockerBtn->rx * 100) / 100.0) << std::endl;
-//     //     }
-
-//     //     {
-//     //         std::cout<<"                    roll, roll_offset.        vz = "<<robot_roll_deg<<",\t"<< current_roll_offset<<std::endl;
-//     //     }
-
-//     //     ctr = 0;
-//     // }
-// }
 void WheelLegSDK::AnalyzeData(unsigned char *recv_buff, LowState &lowState)
 {
     // int idx = 2; // 错误：从字节2开始，会跳过一个数据字节
@@ -537,11 +425,13 @@ void WheelLegSDK::AnalyzeData(unsigned char *recv_buff, LowState &lowState)
     float omega_lx = read_float(recv_buff, &idx);
     float omega_ly = read_float(recv_buff, &idx);
     float omega_lz = read_float(recv_buff, &idx);
+    // 下位机发送顺序 wxyz
+    float orientation_w = read_float(recv_buff, &idx);
     float orientation_x = read_float(recv_buff, &idx);
     float orientation_y = read_float(recv_buff, &idx);
     float orientation_z = read_float(recv_buff, &idx);
-    float orientation_w = read_float(recv_buff, &idx);
 
+    // 注意朝向
     Vector3 robot_up_w = Quaternion_Transform(0, 1, 0, orientation_x, orientation_y, orientation_z, orientation_w);
     Vector3 current_trunk_front = Quaternion_Transform(1, 0, 0, orientation_x, orientation_y, orientation_z, orientation_w);
     Vector3 current_trunk_right = Quaternion_Transform(0, 0, 1, orientation_x, orientation_y, orientation_z, orientation_w);
@@ -562,7 +452,8 @@ void WheelLegSDK::AnalyzeData(unsigned char *recv_buff, LowState &lowState)
 
     unsigned char key1 = recv_buff[idx-2];
     unsigned char key2 = recv_buff[idx-1];
-
+    key1 = ~key1;
+    key2 = ~key2;
     rockerBtn->btn.components.R1 = (key1 & 0x80) >> 7;
     rockerBtn->btn.components.L1 = (key1 & 0x40) >> 6;
     rockerBtn->btn.components.start = (key1 & 0x20) >> 5;
@@ -598,18 +489,18 @@ void WheelLegSDK::AnalyzeData(unsigned char *recv_buff, LowState &lowState)
         lowState.motorState[i].dq = lowState.motorState[i].dq_raw = read_from2bytes(recv_buff, &idx, -33, 33);
         lowState.motorState[i].ddq = lowState.motorState[i].ddq_raw = 0;
     }
-
+    // 注意朝向
     lowState.imu.quaternion[0] = orientation_w;
     lowState.imu.quaternion[1] = orientation_x;
-    lowState.imu.quaternion[2] = -orientation_z;
-    lowState.imu.quaternion[3] = orientation_y;
+    lowState.imu.quaternion[2] = orientation_y;
+    lowState.imu.quaternion[3] = orientation_z;
 
     lowState.imu.gyroscope[0] = omega_lx;
-    lowState.imu.gyroscope[1] = -omega_lz;
-    lowState.imu.gyroscope[2] = omega_ly;
+    lowState.imu.gyroscope[1] = omega_ly;
+    lowState.imu.gyroscope[2] = omega_lz;
     lowState.imu.accelerometer[0] = acc_lx;
-    lowState.imu.accelerometer[1] = -acc_lz;
-    lowState.imu.accelerometer[2] = acc_ly;
+    lowState.imu.accelerometer[1] = acc_ly;
+    lowState.imu.accelerometer[2] = acc_lz;
 }
 
 

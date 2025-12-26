@@ -14,7 +14,7 @@
 #include "observation_buffer.hpp"
 #include "inference_runtime.hpp"
 #include "loop.hpp"
-#include "fsm_l4w4.hpp"
+#include "fsm_wheel_leg.hpp"
 
 #include "wheel_leg_sdk.hpp"
 #include <csignal>
@@ -58,6 +58,8 @@ private:
     const int plot_size = 100;
     std::vector<int> plot_t;
     std::vector<std::vector<float>> plot_real_joint_pos, plot_target_joint_pos;
+    std::vector<std::vector<float>> plot_imu; // 0:Roll, 1:Pitch, 2:Yaw
+    std::vector<std::vector<float>> plot_cmd; // 0:vx, 1:vy, 2:wz
     void Plot();
 
     // wheel_leg interface
