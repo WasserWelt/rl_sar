@@ -54,11 +54,27 @@ void RL::StateController(const RobotState<float>* state, RobotCommand<float>* co
         this->control.y = 0.0f;
         this->control.yaw = 0.0f;
     }
-    if (this->control.current_keyboard == Input::Keyboard::N || this->control.current_gamepad == Input::Gamepad::X)
+    // if (this->control.current_keyboard == Input::Keyboard::N || this->control.current_gamepad == Input::Gamepad::X)
+    // {
+    //     this->control.navigation_mode = !this->control.navigation_mode;
+    //     std::cout << std::endl << LOGGER::INFO << "Navigation mode: " << (this->control.navigation_mode ? "ON" : "OFF") << std::endl;
+    // }
+    // 使用静态变量记录上一帧按键状态，防止连续触发
+    static bool last_nav_key_pressed = false;
+    
+    // 检查当前是否按下了 N (键盘) 或 X (手柄)
+    bool is_nav_key_down = (this->control.current_keyboard == Input::Keyboard::N || 
+                            this->control.current_gamepad == Input::Gamepad::X);
+
+    // 逻辑：只有当“当前按下了”且“上一帧没按”时，才执行切换
+    if (is_nav_key_down && !last_nav_key_pressed)
     {
         this->control.navigation_mode = !this->control.navigation_mode;
         std::cout << std::endl << LOGGER::INFO << "Navigation mode: " << (this->control.navigation_mode ? "ON" : "OFF") << std::endl;
     }
+
+    // 更新上一帧的状态
+    last_nav_key_pressed = is_nav_key_down;
 }
 
 std::vector<float> RL::ComputeObservation()
